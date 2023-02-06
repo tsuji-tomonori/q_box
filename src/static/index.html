@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="jp">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css">
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <title>Question Box</title>
+</head>
+
+<body>
+    <!-- component -->
+    <div id="root"></div>
+    <script type="text/babel">
+        // DOM操作
+        class Comment extends React.Component {
+            renderCommet(obj) {
+                return (
+                    <div className="flex justify-between items-center border-b py-4 mb-4">
+                        <div>
+                            <div>
+                                <span className="block text-sm font-bold">{obj["name"]}</span>
+                                <span className="block text-gray-500 text-sm">{obj["date"]}</span>
+                            </div>
+                            <p className="text-gray-600 mt-3">{obj["question"]}</p>
+                        </div>
+                    </div>
+                )
+            }
+
+            render() {
+                return (
+                    <div>
+                        {objs.map((obj) => {
+                            return <div key={obj.question}>{this.renderCommet(obj)}</div>
+                        })}
+                    </div>
+                )
+            }
+        }
+
+        class TotalConnections extends React.Component {
+            render() {
+                return (
+                    <div className="flex flex-col gap-0.5 border-b">
+                        <span className="block font-bold">viewers</span>
+                        <span className="block text-gray-500 text-sm">now {total} viewers</span>
+                    </div>
+                )
+            }
+        }
+
+        class Root extends React.Component {
+            render() {
+                return (
+                    <div className="bg-white py-6 sm:py-8 lg:py-12">
+                        <div className="max-w-screen-md px-4 md:px-8 mx-auto">
+                            <h2 className="text-gray-800 text-2xl lg:text-3xl font-bold text-center mb-4 md:mb-8 xl:mb-12">Question Box
+                            </h2>
+
+                            <TotalConnections></TotalConnections>
+                            <div className="divide-y">
+                                <div className="flex flex-col gap-3 py-4 md:py-8">
+                                    <Comment></Comment>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        }
+
+        // 画面レンダリング
+        let total = 0
+        let objs = []
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(<Root />)
+
+        // トピック名
+        const topic = "sample"
+        // 接続
+        const options = {
+            clean: true,
+            connectTimeout: 4000,
+            clientId: 'q_box_' + Math.random().toString(16).substr(2, 8),
+            username: topic,
+            password: "sample",
+        }
+        const client = mqtt.connect("wss://a2ibrt3m606us0-ats.iot.ap-northeast-1.amazonaws.com:443?x-amz-customauthorizer-name=iotauth_kmrwvWm1VBIr", options)
+
+        // 以降はイベントごとに呼び出される
+
+        // 接続されたとき
+        client.on("connect", () => {
+            // subscribe
+            client.subscribe(topic)
+        })
+
+        // メッセージを受信したとき
+        client.on("message", (topic, message) => {
+            let msg = JSON.parse(message.toString())
+            if (msg["type"] === "viewers") {
+                total = msg["viewers"]
+            }
+            if (msg["type"] === "question") {
+                objs.unshift(msg["question"])
+            }
+            root.render(<Root />)
+        })
+
+        // エラー発生時
+        client.on("error", (error) => {
+            console.log(error)
+        })
+
+    </script>
+</body>
+
+</html>
