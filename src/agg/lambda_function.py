@@ -82,13 +82,13 @@ def get_viewers() -> dict[str, int]:
     return {item["topic"]: item["viewers"] for item in items}
 
 
-def publish_viewers(viewers: int) -> None:
+def publish_viewers(topic: str, viewers: int) -> None:
     payload = {
         "type": "viewers",
         "viewers": viewers,
     }
     client_iot.publish(
-        topic=os.environ["TOPIC_NAME"],
+        topic=topic,
         payload=json.dumps(payload),
     )
 
@@ -117,7 +117,7 @@ def service(event: dict[str, Any]) -> None:
             result[k] = result.get(k, 0) + v
     for topic, viewers in result.items():
         put_viewers(topic, viewers)
-    publish_viewers(int(result[os.environ["TOPIC_NAME"]]))
+        publish_viewers(topic, int(viewers))
 
 
 def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> int:
