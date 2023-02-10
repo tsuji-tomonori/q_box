@@ -1,3 +1,4 @@
+import datetime
 import json
 
 import requests
@@ -6,7 +7,7 @@ payload = {
     "type": "question",
     "question": {
         "name": "hoge",
-        "date": "kyou",
+        "date": f"{datetime.datetime.utcnow().isoformat()[:-3]}Z",
         "question": "新しいやつ",
     }
 }
