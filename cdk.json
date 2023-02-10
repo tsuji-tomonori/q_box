@@ -20,8 +20,7 @@
     },
     "context": {
         "env_fn_agg": {
-            "LOG_LEVEL": "INFO",
-            "TOPIC_NAME": "sample"
+            "LOG_LEVEL": "INFO"
         },
         "env_fn_auth": {
             "LOG_LEVEL": "INFO",
